@@ -14,8 +14,10 @@ import me.him188.kotlin.jvm.blocking.bridge.JvmBlockingBridge
 import net.mamoe.mirai.contact.ContactList
 import net.mamoe.mirai.contact.Group
 import net.mamoe.mirai.contact.NormalMember
+import net.mamoe.mirai.data.GroupHonorType
 import net.mamoe.mirai.data.MemberInfo
 import net.mamoe.mirai.event.broadcast
+import net.mamoe.mirai.event.events.MemberHonorChangeEvent
 import net.mamoe.mirai.event.events.MemberJoinRequestEvent
 import net.mamoe.mirai.mock.MockBot
 import net.mamoe.mirai.mock.MockBotDSL
@@ -36,7 +38,17 @@ public interface MockGroup : Group, MockContact, MockMsgSyncSupport {
     override val members: ContactList<MockNormalMember>
     override val owner: MockNormalMember
     override val botAsMember: MockNormalMember
+    override var avatarUrl: String
     override val announcements: MockAnnouncements
+    public val honorMembers: MutableMap<GroupHonorType, MockNormalMember>
+    /**
+     * 更改拥有群荣耀的群成员.
+     * 会自动广播[MemberHonorChangeEvent.Achieve]和[MemberHonorChangeEvent.Lose].
+     * 此外如果honorType是[GroupHonorType.TALKATIVE], 会额外广播[net.mamoe.mirai.event.events.GroupTalkativeChangeEvent].
+     * 如果不需要广播事件, 可直接更改 [MockGroup.honorMembers]
+     */
+    @MockBotDSL
+    public fun changeHonorMember(member: MockNormalMember, honorType: GroupHonorType)
 
     /**
      * 获取群控制面板

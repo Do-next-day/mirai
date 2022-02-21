@@ -11,14 +11,35 @@ package net.mamoe.mirai.mock.contact
 
 import me.him188.kotlin.jvm.blocking.bridge.JvmBlockingBridge
 import net.mamoe.mirai.contact.Stranger
+import net.mamoe.mirai.event.broadcast
+import net.mamoe.mirai.event.events.StrangerAddEvent
+import net.mamoe.mirai.event.events.StrangerRelationChangeEvent
 import net.mamoe.mirai.mock.MockBotDSL
 
 @JvmBlockingBridge
 public interface MockStranger : Stranger, MockContact, MockUser {
     public interface MockApi {
-        val contact: MockStranger
-        var nick: String
-        var remark: String
+        public val contact: MockStranger
+        public var nick: String
+        public var remark: String
+    }
+
+    /**
+     * 广播陌生人加入
+     */
+    @MockBotDSL
+    public suspend fun broadcastStrangerAddEvent(): StrangerAddEvent {
+        return StrangerAddEvent(this).broadcast()
+    }
+
+    /**
+     * 添加为好友
+     */
+    @MockBotDSL
+    public suspend fun addAsFriend() {
+        this.bot.addFriend(this.id, this.nick)
+        bot.strangers.delegate.remove(this)
+        StrangerRelationChangeEvent.Friended(this, bot.getFriend(this.id)!!).broadcast()
     }
 
     /**

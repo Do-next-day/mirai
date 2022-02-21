@@ -15,16 +15,16 @@ import net.mamoe.mirai.event.broadcast
 import net.mamoe.mirai.event.events.BotInvitedJoinGroupRequestEvent
 import net.mamoe.mirai.event.events.FriendAddEvent
 import net.mamoe.mirai.event.events.FriendInputStatusChangedEvent
-import net.mamoe.mirai.message.data.MessageChain
 import net.mamoe.mirai.mock.MockBotDSL
 import kotlin.random.Random
 
 @JvmBlockingBridge
 public interface MockFriend : Friend, MockContact, MockUser, MockMsgSyncSupport {
     public interface MockApi {
-        val contact: MockFriend
-        var nick: String
-        var remark: String
+        public val contact: MockFriend
+        public var nick: String
+        public var remark: String
+        public var avatarUrl: String
     }
 
     /**

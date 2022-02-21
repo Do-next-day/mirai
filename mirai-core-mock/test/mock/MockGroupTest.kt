@@ -11,17 +11,18 @@ package net.mamoe.mirai.mock.test.mock
 
 import kotlinx.coroutines.flow.toList
 import net.mamoe.mirai.contact.MemberPermission
-import net.mamoe.mirai.contact.announcement.AnnouncementParameters
+import net.mamoe.mirai.contact.announcement.AnnouncementParametersBuilder
+import net.mamoe.mirai.data.GroupHonorType
 import net.mamoe.mirai.event.events.*
+import net.mamoe.mirai.message.data.FileMessage
 import net.mamoe.mirai.mock.contact.announcement.MockOnlineAnnouncement
 import net.mamoe.mirai.mock.test.MockBotTestBase
 import net.mamoe.mirai.mock.utils.member
 import net.mamoe.mirai.mock.utils.simpleMemberInfo
 import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
+import net.mamoe.mirai.utils.cast
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNotSame
+import kotlin.test.*
 
 internal class MockGroupTest : MockBotTestBase() {
     @Test
@@ -75,16 +76,31 @@ internal class MockGroupTest : MockBotTestBase() {
     @Test
     internal fun testGroupAnnouncements() = runTest {
         val group = bot.addGroup(8484541, "87")
-        group.announcements.publish(
-            MockOnlineAnnouncement(
-                content = "Hello World",
-                parameters = AnnouncementParameters.DEFAULT,
-                senderId = 971121,
-                allConfirmed = false,
-                confirmedMembersCount = 0,
-                publicationTime = 0
+        runAndReceiveEventBroadcast {
+            group.announcements.publish(
+                MockOnlineAnnouncement(
+                    content = "dlroW olleH",
+                    parameters = AnnouncementParametersBuilder().apply { this.sendToNewMember = true }.build(),
+                    senderId = 9711221,
+                    allConfirmed = false,
+                    confirmedMembersCount = 0,
+                    publicationTime = 0
+                )
             )
-        )
+            group.announcements.publish(
+                MockOnlineAnnouncement(
+                    content = "Hello World",
+                    parameters = AnnouncementParametersBuilder().apply { this.sendToNewMember = true }.build(),
+                    senderId = 971121,
+                    allConfirmed = false,
+                    confirmedMembersCount = 0,
+                    publicationTime = 0
+                )
+            )
+        }.let { events ->
+            assertEquals(2, events.size)
+            assertIsInstance<GroupEntranceAnnouncementChangeEvent>(events[0])
+        }
         val anc = group.announcements.asFlow().toList()
         assertEquals(1, anc.size)
         assertEquals("Hello World", anc[0].content)
@@ -143,5 +159,41 @@ internal class MockGroupTest : MockBotTestBase() {
         )
         fsroot.resolve("helloworld.txt").delete()
         assertEquals(0, fsroot.listFilesCollection().size)
+    }
+
+    @Test
+    internal fun testMemberHonorChangeEvent() = runTest {
+        runAndReceiveEventBroadcast {
+            val group = bot.addGroup(111, "aa")
+            val member1 = group.addMember0(simpleMemberInfo(222, "bb", permission = MemberPermission.MEMBER))
+            val member2 = group.addMember0(simpleMemberInfo(333, "cc", permission = MemberPermission.MEMBER))
+            group.honorMembers[GroupHonorType.ACTIVE] = member1
+            group.changeHonorMember(member2, GroupHonorType.ACTIVE)
+        }.let { events ->
+            assertEquals(2, events.size)
+            assertIsInstance<MemberHonorChangeEvent.Lose>(events[0])
+            assertEquals(222, events[0].cast<MemberHonorChangeEvent.Lose>().member.id)
+            assertEquals(GroupHonorType.ACTIVE, events[1].cast<MemberHonorChangeEvent.Achieve>().honorType)
+            assertEquals(333, events[1].cast<MemberHonorChangeEvent.Achieve>().member.id)
+            assertIsInstance<MemberHonorChangeEvent.Achieve>(events[1])
+        }
+    }
+
+    @Test
+    internal fun testGroupFileUpload() = runTest {
+        val files = bot.addGroup(111, "aaa").files
+        val file = files.uploadNewFile("aaa", "ccc".toByteArray().toExternalResource().toAutoCloseable())
+        assertEquals("ccc", file.getUrl()!!.toUrl().readText())
+        runAndReceiveEventBroadcast {
+            bot.getGroup(111)!!.addMember0(simpleMemberInfo(222, "bbb", permission = MemberPermission.ADMINISTRATOR))
+                .says(file.toMessage())
+        }.let { events ->
+            assertTrue(events[0].cast<GroupMessageEvent>().message.contains(FileMessage))
+        }
+    }
+
+    @Test
+    internal fun testAvatar() = runTest {
+        assertNotEquals("", bot.addGroup(111, "aaa").avatarUrl.toUrl().readText())
     }
 }

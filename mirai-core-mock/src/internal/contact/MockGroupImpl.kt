@@ -12,10 +12,12 @@
 package net.mamoe.mirai.mock.internal.contact
 
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.runBlocking
 import net.mamoe.mirai.contact.*
 import net.mamoe.mirai.contact.announcement.OfflineAnnouncement
 import net.mamoe.mirai.contact.announcement.buildAnnouncementParameters
 import net.mamoe.mirai.contact.file.RemoteFiles
+import net.mamoe.mirai.data.GroupHonorType
 import net.mamoe.mirai.data.MemberInfo
 import net.mamoe.mirai.event.broadcast
 import net.mamoe.mirai.event.events.*
@@ -27,14 +29,12 @@ import net.mamoe.mirai.mock.contact.MockAnonymousMember
 import net.mamoe.mirai.mock.contact.MockGroup
 import net.mamoe.mirai.mock.contact.MockGroupControlPane
 import net.mamoe.mirai.mock.contact.MockNormalMember
+import net.mamoe.mirai.mock.internal.absolutefile.MockRemoteFiles
 import net.mamoe.mirai.mock.internal.msgsrc.OnlineMsgSrcToGroup
 import net.mamoe.mirai.mock.internal.msgsrc.newMsgSrc
 import net.mamoe.mirai.mock.utils.broadcastBlocking
 import net.mamoe.mirai.mock.utils.mock
-import net.mamoe.mirai.utils.ExternalResource
-import net.mamoe.mirai.utils.MiraiExperimentalApi
-import net.mamoe.mirai.utils.RemoteFile
-import net.mamoe.mirai.utils.cast
+import net.mamoe.mirai.utils.*
 import java.util.concurrent.CancellationException
 import kotlin.coroutines.CoroutineContext
 
@@ -47,6 +47,21 @@ internal class MockGroupImpl(
 ) : AbstractMockContact(
     parentCoroutineContext, bot, id
 ), MockGroup {
+    override val honorMembers: MutableMap<GroupHonorType, MockNormalMember> = mutableMapOf()
+    private val txFileSystem = bot.mock().tmpFsServer.fsDisk.newFsSystem()
+
+    override var avatarUrl: String by lateinitMutableProperty { runBlocking { MockImage.random(bot).getUrl(bot) } }
+
+    override fun changeHonorMember(member: MockNormalMember, honorType: GroupHonorType) {
+        val onm = honorMembers[honorType]
+        honorMembers[honorType] = member
+        // reference net.mamoe.mirai.internal.network.notice.group.NoticePipelineContext.processGeneralGrayTip, GroupNotificationProcessor.kt#361L
+        if (honorType == GroupHonorType.TALKATIVE) {
+            if (onm != null) GroupTalkativeChangeEvent(this, member, onm).broadcastBlocking()
+        }
+        if (onm != null) MemberHonorChangeEvent.Lose(onm, honorType).broadcastBlocking()
+        MemberHonorChangeEvent.Achieve(member, honorType).broadcastBlocking()
+    }
 
     override fun addMember(mockMember: MemberInfo): MockGroup {
         addMember0(mockMember)
@@ -238,7 +253,7 @@ internal class MockGroupImpl(
                 checkBotPermission(MemberPermission.ADMINISTRATOR)
                 announcements.publish0(OfflineAnnouncement.create(value, buildAnnouncementParameters {
                     sendToNewMember = true
-                }))
+                }), this@MockGroupImpl.botAsMember)
             }
 
         override var isMuteAll: Boolean
@@ -305,12 +320,11 @@ internal class MockGroupImpl(
 
     @Suppress("OverridingDeprecatedMember", "DEPRECATION")
     override val filesRoot: RemoteFile by lazy {
-        net.mamoe.mirai.mock.internal.remotefile.v1.MockRemoteFileRoot(this)
+        net.mamoe.mirai.mock.internal.remotefile.v1.MockRemoteFileRoot(this, txFileSystem)
         //MockRemoteFileRoot(this)
     }
 
-    override val files: RemoteFiles
-        get() = TODO("Not yet implemented")
+    override val files: RemoteFiles = MockRemoteFiles(this, txFileSystem)
 
     override suspend fun uploadAudio(resource: ExternalResource): OfflineAudio =
         resource.mockUploadAudio(bot)

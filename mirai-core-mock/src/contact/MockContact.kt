@@ -14,4 +14,6 @@ import net.mamoe.mirai.contact.Contact
 
 @JvmBlockingBridge
 public interface MockContact : Contact, MockContactOrBot {
+    // override for modifiable
+    override var avatarUrl: String
 }
