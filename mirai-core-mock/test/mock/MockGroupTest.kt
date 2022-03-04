@@ -9,14 +9,20 @@
 
 package net.mamoe.mirai.mock.test.mock
 
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.toList
 import net.mamoe.mirai.contact.MemberPermission
 import net.mamoe.mirai.contact.announcement.AnnouncementParametersBuilder
+import net.mamoe.mirai.contact.isBotMuted
 import net.mamoe.mirai.data.GroupHonorType
 import net.mamoe.mirai.event.events.*
 import net.mamoe.mirai.message.data.FileMessage
+import net.mamoe.mirai.mock.contact.addMember
 import net.mamoe.mirai.mock.contact.announcement.MockOnlineAnnouncement
 import net.mamoe.mirai.mock.test.MockBotTestBase
+import net.mamoe.mirai.mock.utils.MockActions.nameCardChangesTo
+import net.mamoe.mirai.mock.utils.MockActions.permissionChangesTo
+import net.mamoe.mirai.mock.utils.MockActions.specialTitleChangesTo
 import net.mamoe.mirai.mock.utils.member
 import net.mamoe.mirai.mock.utils.simpleMemberInfo
 import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
@@ -195,5 +201,260 @@ internal class MockGroupTest : MockBotTestBase() {
     @Test
     internal fun testAvatar() = runTest {
         assertNotEquals("", bot.addGroup(111, "aaa").avatarUrl.toUrl().readText())
+    }
+
+    @Test
+    internal fun testBotLeaveGroup() = runTest {
+        runAndReceiveEventBroadcast {
+            bot.addGroup(1, "A").quit()
+            bot.addGroup(2, "B")
+                .addMember(3, "W") {
+                    permission(MemberPermission.ADMINISTRATOR)
+                }
+                .getOrFail(3).broadcastKickBot()
+            // TODO: BotLeaveEvent.Disband
+        }.let { events ->
+            assertEquals(2, events.size)
+            assertIsInstance<BotLeaveEvent.Active>(events[0]) {
+                assertEquals(1, group.id)
+                assertEquals("A", group.name)
+            }
+            assertIsInstance<BotLeaveEvent.Kick>(events[1]) {
+                assertEquals(2, group.id)
+                assertEquals("B", group.name)
+                assertEquals(3, operator.id)
+                assertEquals("W", operator.nick)
+            }
+            assertNull(bot.getGroup(1))
+            assertNull(bot.getGroup(2))
+        }
+    }
+
+    @Test
+    fun testBotGroupPermissionChangeEvent() = runTest {
+        runAndReceiveEventBroadcast {
+            bot.addGroup(1, "")
+                .addMember(1, "o") {
+                    permission(MemberPermission.OWNER)
+                }
+                .botAsMember.permissionChangesTo(MemberPermission.ADMINISTRATOR)
+            bot.addGroup(2, "")
+                .addMember(1, "o") {
+                    permission(MemberPermission.OWNER)
+                }
+                .let {
+                    it.changeOwner(it.botAsMember)
+                }
+        }.let { events ->
+            assertEquals(3, events.size)
+            assertIsInstance<BotGroupPermissionChangeEvent>(events[0]) {
+                assertEquals(MemberPermission.ADMINISTRATOR, new)
+                assertEquals(MemberPermission.MEMBER, origin)
+            }
+            assertIsInstance<BotGroupPermissionChangeEvent>(events[1]) {
+                assertEquals(MemberPermission.OWNER, new)
+                assertEquals(MemberPermission.MEMBER, origin)
+            }
+            assertIsInstance<MemberPermissionChangeEvent>(events[2]) {
+                assertEquals(1, member.id)
+                assertEquals("o", member.nick)
+                assertEquals(MemberPermission.MEMBER, new)
+                assertEquals(MemberPermission.OWNER, origin)
+            }
+        }
+    }
+
+    @Test
+    fun testMuteEvent() = runTest {
+        runAndReceiveEventBroadcast {
+            val group = bot.addGroup(1, "")
+                .addMember(2, "") {}
+
+            group.botAsMember.let {
+                it.broadcastMute(it, 2)
+                assertTrue { it.isMuted }
+                it.broadcastMute(it, 0)
+                assertFalse { it.isMuted }
+                it.broadcastMute(it, 5)
+                assertTrue { group.isBotMuted }
+                assertTrue { it.isMuted }
+            }
+
+            group.getOrFail(2).let {
+                it.broadcastMute(it, 2)
+                assertTrue { it.isMuted }
+                it.broadcastMute(it, 0)
+                assertFalse { it.isMuted }
+                it.broadcastMute(it, 5)
+                assertTrue { it.isMuted }
+            }
+        }.let { events ->
+            assertEquals(6, events.size)
+            assertIsInstance<BotMuteEvent>(events[0])
+            assertIsInstance<BotUnmuteEvent>(events[1])
+            assertIsInstance<BotMuteEvent>(events[2])
+
+            assertIsInstance<MemberMuteEvent>(events[3])
+            assertIsInstance<MemberUnmuteEvent>(events[4])
+            assertIsInstance<MemberMuteEvent>(events[5])
+
+            delay(6000L)
+            assertFalse { bot.getGroupOrFail(1).isBotMuted }
+            assertFalse { bot.getGroupOrFail(1).getOrFail(2).isMuted }
+        }
+    }
+
+    @Test
+    fun testGroupNameChangeEvent() = runTest {
+        runAndReceiveEventBroadcast {
+            val g = bot.addGroup(1, "").addMember(7, "A") {}
+            g.controlPane.groupName = "OOOOO"
+            g.name = "Test"
+            g.controlPane.withActor(g.getOrFail(7)).groupName = "Hi"
+        }.let { events ->
+            assertEquals(2, events.size)
+            assertIsInstance<GroupNameChangeEvent>(events[0]) {
+                assertEquals("OOOOO", origin)
+                assertEquals("Test", new)
+                assertEquals(1, group.id)
+                assertNull(operator)
+            }
+            assertIsInstance<GroupNameChangeEvent>(events[1]) {
+                assertEquals("Test", origin)
+                assertEquals("Hi", new)
+                assertEquals(1, group.id)
+                assertEquals(7, operator!!.id)
+            }
+        }
+    }
+
+    @Test
+    fun testGroupMuteAllEvent() = runTest {
+        runAndReceiveEventBroadcast {
+            val g = bot.addGroup(1, "").addMember(7, "A") {}
+            g.controlPane.isMuteAll = true
+            g.settings.isMuteAll = false
+            g.controlPane.withActor(g.getOrFail(7)).isMuteAll = true
+        }.let { events ->
+            assertEquals(2, events.size)
+            assertIsInstance<GroupMuteAllEvent>(events[0]) {
+                assertEquals(true, origin)
+                assertEquals(false, new)
+                assertEquals(1, group.id)
+                assertNull(operator)
+            }
+            assertIsInstance<GroupMuteAllEvent>(events[1]) {
+                assertEquals(false, origin)
+                assertEquals(true, new)
+                assertEquals(1, group.id)
+                assertEquals(7, operator!!.id)
+            }
+        }
+    }
+
+    @Test
+    fun testGroupAllowAnonymousChatEvent() = runTest {
+        runAndReceiveEventBroadcast {
+            val g = bot.addGroup(1, "").addMember(7, "A") {}
+            g.controlPane.isAnonymousChatAllowed = true
+            g.settings.isAnonymousChatEnabled = false
+            g.controlPane.withActor(g.getOrFail(7)).isAnonymousChatAllowed = true
+        }.let { events ->
+            assertEquals(2, events.size)
+            assertIsInstance<GroupAllowAnonymousChatEvent>(events[0]) {
+                assertEquals(true, origin)
+                assertEquals(false, new)
+                assertEquals(1, group.id)
+                assertNull(operator)
+            }
+            assertIsInstance<GroupAllowAnonymousChatEvent>(events[1]) {
+                assertEquals(false, origin)
+                assertEquals(true, new)
+                assertEquals(1, group.id)
+                assertEquals(7, operator!!.id)
+            }
+        }
+    }
+
+    @Test
+    fun testGroupAllowConfessTalkEvent() = runTest {
+        runAndReceiveEventBroadcast {
+            val g = bot.addGroup(1, "").addMember(7, "A") {}
+            g.controlPane.isAllowConfessTalk = true
+            g.controlPane.withActor(g.botAsMember).isAllowConfessTalk = false
+            g.controlPane.withActor(g.getOrFail(7)).isAllowConfessTalk = true
+        }.let { events ->
+            assertEquals(2, events.size)
+            assertIsInstance<GroupAllowConfessTalkEvent>(events[0]) {
+                assertEquals(true, origin)
+                assertEquals(false, new)
+                assertEquals(1, group.id)
+                assertTrue(isByBot)
+            }
+            assertIsInstance<GroupAllowConfessTalkEvent>(events[1]) {
+                assertEquals(false, origin)
+                assertEquals(true, new)
+                assertEquals(1, group.id)
+                assertFalse(isByBot)
+            }
+        }
+    }
+
+    @Test
+    fun testGroupAllowMemberInviteEvent() = runTest {
+        runAndReceiveEventBroadcast {
+            val g = bot.addGroup(1, "").addMember(7, "A") {}
+            g.controlPane.isAllowMemberInvite = true
+            g.settings.isAllowMemberInvite = false
+            g.controlPane.withActor(g.getOrFail(7)).isAllowMemberInvite = true
+        }.let { events ->
+            assertEquals(2, events.size)
+            assertIsInstance<GroupAllowMemberInviteEvent>(events[0]) {
+                assertEquals(true, origin)
+                assertEquals(false, new)
+                assertEquals(1, group.id)
+                assertNull(operator)
+            }
+            assertIsInstance<GroupAllowMemberInviteEvent>(events[1]) {
+                assertEquals(false, origin)
+                assertEquals(true, new)
+                assertEquals(1, group.id)
+                assertEquals(7, operator!!.id)
+            }
+        }
+    }
+
+    @Test
+    fun testMemberCardChangeEvent() = runTest {
+        runAndReceiveEventBroadcast {
+            val group = bot.addGroup(1, "").addMember(2, "") {
+                nameCard("Hi")
+            }
+            group.getOrFail(2).nameCardChangesTo("Hello")
+        }.let { events ->
+            assertEquals(1, events.size)
+            assertIsInstance<MemberCardChangeEvent>(events[0]) {
+                assertEquals("Hi", origin)
+                assertEquals("Hello", new)
+                assertEquals(2, member.id)
+                assertEquals(1, member.group.id)
+            }
+        }
+    }
+
+    @Test
+    fun testMemberSpecialTitleChangeEvent() = runTest {
+        runAndReceiveEventBroadcast {
+            val group = bot.addGroup(1, "").addMember(2, "") {}
+            group.getOrFail(2).specialTitleChangesTo("Hello")
+        }.let { events ->
+            assertEquals(1, events.size)
+            assertIsInstance<MemberSpecialTitleChangeEvent>(events[0]) {
+                assertEquals("", origin)
+                assertEquals("Hello", new)
+                assertEquals(2, member.id)
+                assertEquals(1, member.group.id)
+            }
+        }
     }
 }

@@ -92,7 +92,7 @@ internal class MockNormalMemberImpl(
         get() = mockApi.lastSpeakTimestamp
 
     override val muteTimeRemaining: Int
-        get() = max((currentTimeSeconds() - mockApi.muteTimeEndTimestamp).toInt(), 0)
+        get() = max((mockApi.muteTimeEndTimestamp - currentTimeSeconds()).toInt(), 0)
 
     override val remark: String
         get() = mockApi.remark

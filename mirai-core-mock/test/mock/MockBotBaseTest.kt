@@ -11,7 +11,6 @@ package net.mamoe.mirai.mock.test.mock
 
 import net.mamoe.mirai.Mirai
 import net.mamoe.mirai.contact.MemberPermission
-import net.mamoe.mirai.event.events.BotAvatarChangedEvent
 import net.mamoe.mirai.event.events.MemberPermissionChangeEvent
 import net.mamoe.mirai.mock.contact.MockNormalMember
 import net.mamoe.mirai.mock.test.MockBotTestBase
@@ -90,18 +89,6 @@ internal class MockBotBaseTest : MockBotTestBase() {
         assertEquals(MemberPermission.MEMBER, newOwner.permission)
         assertEquals(MemberPermission.MEMBER, mockGroup.botPermission)
         assertSame(newNewOwner, mockGroup.owner)
-    }
-
-    @Test
-    internal fun testMockAvatarChange() = runTest {
-        assertEquals("http://q1.qlogo.cn/g?b=qq&nk=${bot.id}&s=640", bot.avatarUrl)
-        runAndReceiveEventBroadcast {
-            bot.avatarUrl = "http://localhost/test.png"
-            assertEquals("http://localhost/test.png", bot.avatarUrl)
-        }.let { events ->
-            assertEquals(1, events.size)
-            assertIsInstance<BotAvatarChangedEvent>(events[0])
-        }
     }
 
     @Test

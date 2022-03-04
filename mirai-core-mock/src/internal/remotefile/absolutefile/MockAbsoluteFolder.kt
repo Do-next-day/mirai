@@ -7,7 +7,7 @@
  * https://github.com/mamoe/mirai/blob/dev/LICENSE
  */
 @file: Suppress("invisible_member", "invisible_reference")
-package net.mamoe.mirai.mock.internal.absolutefile
+package net.mamoe.mirai.mock.internal.remotefile.absolutefile
 
 import kotlinx.coroutines.flow.*
 import net.mamoe.mirai.contact.FileSupported

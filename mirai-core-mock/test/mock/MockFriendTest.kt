@@ -9,18 +9,19 @@
 
 package net.mamoe.mirai.mock.test.mock
 
-import net.mamoe.mirai.event.events.FriendAddEvent
-import net.mamoe.mirai.event.events.FriendAvatarChangedEvent
-import net.mamoe.mirai.event.events.NewFriendRequestEvent
+import kotlinx.coroutines.delay
+import net.mamoe.mirai.contact.MemberPermission
+import net.mamoe.mirai.contact.isBotMuted
+import net.mamoe.mirai.event.events.*
+import net.mamoe.mirai.mock.contact.addMember
 import net.mamoe.mirai.mock.internal.contact.MockImage
 import net.mamoe.mirai.mock.test.MockBotTestBase
+import net.mamoe.mirai.mock.utils.MockActions.permissionChangesTo
 import net.mamoe.mirai.utils.cast
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
-import kotlin.test.assertSame
+import kotlin.test.*
 
-internal class MockFriendTest: MockBotTestBase() {
+internal class MockFriendTest : MockBotTestBase() {
 
     @Test
     internal fun testNewFriendRequest() = runTest {
@@ -76,4 +77,75 @@ internal class MockFriendTest: MockBotTestBase() {
             assertNotEquals("", bot.getFriend(222)!!.avatarUrl.toUrl().readText())
         }
     }
+
+    @Test
+    fun testFriendRemarkChangeEvent() = runTest {
+        runAndReceiveEventBroadcast {
+            bot.addFriend(1, "").remark = "Test"
+        }.let { events ->
+            assertEquals(1, events.size)
+            assertIsInstance<FriendRemarkChangeEvent>(events[0]) {
+                assertEquals(1, this.friend.id)
+                assertEquals("", oldRemark)
+                assertEquals("Test", newRemark)
+            }
+        }
+    }
+
+    @Test
+    fun testFriendRequestAndAddEvent() = runTest {
+        runAndReceiveEventBroadcast {
+            bot.broadcastNewFriendRequestEvent(
+                1, "Test", 0, "Hi"
+            ).accept()
+            bot.broadcastNewFriendRequestEvent(
+                2, "Hi", 1, "0"
+            ).reject()
+        }.let { events ->
+            assertEquals(3, events.size)
+            assertIsInstance<NewFriendRequestEvent>(events[0]) {
+                assertEquals(1, fromId)
+                assertEquals("Test", fromNick)
+                assertEquals(0, fromGroupId)
+                assertEquals("Hi", message)
+            }
+            assertIsInstance<FriendAddEvent>(events[1]) {
+                assertEquals(1, friend.id)
+                assertEquals("Test", friend.nick)
+            }
+            assertIsInstance<NewFriendRequestEvent>(events[2]) {
+                assertEquals(2, fromId)
+                assertEquals("Hi", fromNick)
+                assertEquals(1, fromGroupId)
+                assertEquals("0", message)
+            }
+        }
+    }
+
+    @Test
+    fun testFriendNickChangedEvent() = runTest {
+        runAndReceiveEventBroadcast {
+            bot.addFriend(0, "Old").nick = "Test"
+        }.let { events ->
+            assertEquals(1, events.size)
+            assertIsInstance<FriendNickChangedEvent>(events[0]) {
+                assertEquals("Old", from)
+                assertEquals("Test", to)
+            }
+        }
+    }
+
+    @Test
+    fun testFriendInputStatusChangedEvent() = runTest {
+        runAndReceiveEventBroadcast {
+            bot.addFriend(1, "a").broadcastFriendInputStateChange(true)
+        }.let { events ->
+            assertEquals(1, events.size)
+            assertIsInstance<FriendInputStatusChangedEvent>(events[0]) {
+                assertTrue(inputting)
+                assertSame(bot.getFriend(1), friend)
+            }
+        }
+    }
+
 }

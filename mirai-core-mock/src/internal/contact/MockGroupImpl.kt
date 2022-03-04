@@ -29,12 +29,12 @@ import net.mamoe.mirai.mock.contact.MockAnonymousMember
 import net.mamoe.mirai.mock.contact.MockGroup
 import net.mamoe.mirai.mock.contact.MockGroupControlPane
 import net.mamoe.mirai.mock.contact.MockNormalMember
-import net.mamoe.mirai.mock.internal.absolutefile.MockRemoteFiles
 import net.mamoe.mirai.mock.internal.msgsrc.OnlineMsgSrcToGroup
 import net.mamoe.mirai.mock.internal.msgsrc.newMsgSrc
 import net.mamoe.mirai.mock.utils.broadcastBlocking
 import net.mamoe.mirai.mock.utils.mock
 import net.mamoe.mirai.utils.*
+import java.util.*
 import java.util.concurrent.CancellationException
 import kotlin.coroutines.CoroutineContext
 
@@ -47,8 +47,8 @@ internal class MockGroupImpl(
 ) : AbstractMockContact(
     parentCoroutineContext, bot, id
 ), MockGroup {
-    override val honorMembers: MutableMap<GroupHonorType, MockNormalMember> = mutableMapOf()
-    private val txFileSystem = bot.mock().tmpFsServer.fsDisk.newFsSystem()
+    override val honorMembers: MutableMap<GroupHonorType, MockNormalMember> = EnumMap(GroupHonorType::class.java)
+    private val txFileSystem by lazy { bot.mock().tmpFsServer.fsDisk.newFsSystem() }
 
     override var avatarUrl: String by lateinitMutableProperty { runBlocking { MockImage.random(bot).getUrl(bot) } }
 
@@ -153,6 +153,8 @@ internal class MockGroupImpl(
         override val currentActor: MockNormalMember
     ) : MockGroupControlPane {
         override val group: MockGroup get() = this@MockGroupImpl
+        private val actorNullIfBot: MockNormalMember?
+            get() = currentActor.takeIf { it.id != bot.id }
 
         override var groupName: String
             get() = rawGroupControlPane.groupName
@@ -160,7 +162,7 @@ internal class MockGroupImpl(
                 val ov = rawGroupControlPane.groupName
                 if (ov == value) return
                 rawGroupControlPane.groupName = value
-                GroupNameChangeEvent(ov, value, group, currentActor).broadcastBlocking()
+                GroupNameChangeEvent(ov, value, group, actorNullIfBot).broadcastBlocking()
             }
 
         override var isMuteAll: Boolean
@@ -169,7 +171,7 @@ internal class MockGroupImpl(
                 val ov = rawGroupControlPane.isMuteAll
                 if (ov == value) return
                 rawGroupControlPane.isMuteAll = value
-                GroupMuteAllEvent(ov, value, group, currentActor).broadcastBlocking()
+                GroupMuteAllEvent(ov, value, group, actorNullIfBot).broadcastBlocking()
             }
 
         override var isAllowMemberFileUploading: Boolean
@@ -185,7 +187,7 @@ internal class MockGroupImpl(
                 val ov = rawGroupControlPane.isAllowMemberInvite
                 if (ov == value) return
                 rawGroupControlPane.isAllowMemberInvite = value
-                GroupAllowMemberInviteEvent(ov, value, group, currentActor).broadcastBlocking()
+                GroupAllowMemberInviteEvent(ov, value, group, actorNullIfBot).broadcastBlocking()
             }
 
         override var isAnonymousChatAllowed: Boolean
@@ -194,7 +196,7 @@ internal class MockGroupImpl(
                 val ov = rawGroupControlPane.isAnonymousChatAllowed
                 if (ov == value) return
                 rawGroupControlPane.isAnonymousChatAllowed = value
-                GroupAllowAnonymousChatEvent(ov, value, group, currentActor).broadcastBlocking()
+                GroupAllowAnonymousChatEvent(ov, value, group, actorNullIfBot).broadcastBlocking()
             }
 
         override var isAllowConfessTalk: Boolean
@@ -321,10 +323,11 @@ internal class MockGroupImpl(
     @Suppress("OverridingDeprecatedMember", "DEPRECATION")
     override val filesRoot: RemoteFile by lazy {
         net.mamoe.mirai.mock.internal.remotefile.v1.MockRemoteFileRoot(this, txFileSystem)
-        //MockRemoteFileRoot(this)
     }
 
-    override val files: RemoteFiles = MockRemoteFiles(this, txFileSystem)
+    override val files: RemoteFiles by lazy {
+        net.mamoe.mirai.mock.internal.remotefile.absolutefile.MockRemoteFiles(this, txFileSystem)
+    }
 
     override suspend fun uploadAudio(resource: ExternalResource): OfflineAudio =
         resource.mockUploadAudio(bot)

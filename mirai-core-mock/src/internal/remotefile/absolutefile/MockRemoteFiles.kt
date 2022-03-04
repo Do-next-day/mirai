@@ -9,7 +9,7 @@
 
 @file:Suppress("ClassName")
 
-package net.mamoe.mirai.mock.internal.absolutefile
+package net.mamoe.mirai.mock.internal.remotefile.absolutefile
 
 import net.mamoe.mirai.contact.FileSupported
 import net.mamoe.mirai.contact.file.AbsoluteFolder
