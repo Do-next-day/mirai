@@ -47,7 +47,9 @@ internal class MockAbsoluteFile(
     }
 
     override suspend fun getUrl(): String =
-        files.contact.bot.mock().tmpFsServer.resolveHttpUrl(files.fileSystem.resolveById(id)!!.resolveNativePath())
+        files.contact.bot.mock().tmpResourceServer.resolveHttpUrlByPath(
+            files.fileSystem.resolveById(id)!!.resolveNativePath()
+        ).toString()
 
     override fun toMessage(): FileMessage {
         //todo busId

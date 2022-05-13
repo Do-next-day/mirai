@@ -13,7 +13,7 @@ import net.mamoe.mirai.Bot
 import net.mamoe.mirai.mock.MockBot
 import net.mamoe.mirai.mock.MockBotFactory
 import net.mamoe.mirai.mock.database.MessageDatabase
-import net.mamoe.mirai.mock.txfs.TmpFsServer
+import net.mamoe.mirai.mock.txfs.TmpResourceServer
 import net.mamoe.mirai.mock.userprofile.UserProfileService
 import net.mamoe.mirai.mock.utils.NameGenerator
 import net.mamoe.mirai.utils.BotConfiguration
@@ -30,8 +30,8 @@ internal class MockBotFactoryImpl : MockBotFactory {
             }
             var configuration_: BotConfiguration by lateinitMutableProperty { BotConfiguration { } }
             var nameGenerator: NameGenerator = NameGenerator.DEFAULT
-            var tmpFsServer_: TmpFsServer by lateinitMutableProperty {
-                TmpFsServer.newInMemoryFsServer()
+            var tmpResourceServer_: TmpResourceServer by lateinitMutableProperty {
+                TmpResourceServer.newInMemoryTmpResourceServer()
             }
             var msgDb: MessageDatabase by lateinitMutableProperty {
                 MessageDatabase.newDefaultDatabase()
@@ -56,8 +56,8 @@ internal class MockBotFactoryImpl : MockBotFactory {
                 this.nameGenerator = value
             }
 
-            override fun tmpFsServer(server: TmpFsServer): MockBotFactory.BotBuilder = apply {
-                tmpFsServer_ = server
+            override fun tmpResourceServer(server: TmpResourceServer): MockBotFactory.BotBuilder = apply {
+                tmpResourceServer_ = server
             }
 
             override fun msgDatabase(db: MessageDatabase): MockBotFactory.BotBuilder = apply {
@@ -74,7 +74,7 @@ internal class MockBotFactoryImpl : MockBotFactory {
                     id,
                     nick_,
                     nameGenerator,
-                    tmpFsServer_,
+                    tmpResourceServer_,
                     msgDb,
                     userProfileService,
                 )

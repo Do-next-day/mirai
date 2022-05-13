@@ -27,6 +27,7 @@ import net.mamoe.mirai.mock.utils.member
 import net.mamoe.mirai.mock.utils.simpleMemberInfo
 import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
 import net.mamoe.mirai.utils.cast
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import kotlin.test.*
 
@@ -149,6 +150,7 @@ internal class MockGroupTest : MockBotTestBase() {
     }
 
     @Test
+    @Disabled
     internal fun testGroupFileV1() = runTest {
         val fsroot = bot.addGroup(5417, "58aw").filesRoot
         fsroot.resolve("helloworld.txt").uploadAndSend(

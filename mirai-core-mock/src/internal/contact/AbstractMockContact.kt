@@ -57,13 +57,7 @@ internal abstract class AbstractMockContact(
 
 
     override suspend fun uploadImage(resource: ExternalResource): Image {
-        val md5 = resource.md5
-        val format = resource.formatName
-
-        val id = bot.tmpFsServer.uploadFile(resource)
-        val bindPath = "image/" + generateUUID(md5)
-        bot.tmpFsServer.bindFile(id, bindPath)
-        return MockImage(generateImageId(md5, format), bindPath)
+        return bot.uploadMockImage(resource)
     }
 
     override fun toString(): String {

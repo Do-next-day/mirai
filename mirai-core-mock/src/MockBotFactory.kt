@@ -12,9 +12,9 @@ package net.mamoe.mirai.mock
 import net.mamoe.mirai.BotFactory
 import net.mamoe.mirai.Mirai
 import net.mamoe.mirai.mock.database.MessageDatabase
-import net.mamoe.mirai.mock.txfs.TmpFsServer
 import net.mamoe.mirai.mock.internal.MockBotFactoryImpl
 import net.mamoe.mirai.mock.internal.MockMiraiImpl
+import net.mamoe.mirai.mock.txfs.TmpResourceServer
 import net.mamoe.mirai.mock.userprofile.UserProfileService
 import net.mamoe.mirai.mock.utils.NameGenerator
 import net.mamoe.mirai.utils.BotConfiguration
@@ -36,7 +36,7 @@ public interface MockBotFactory : BotFactory {
         public fun nameGenerator(value: NameGenerator): BotBuilder
 
         @MockBotDSL
-        public fun tmpFsServer(server: TmpFsServer): BotBuilder
+        public fun tmpResourceServer(server: TmpResourceServer): BotBuilder
 
         @MockBotDSL
         public fun msgDatabase(db: MessageDatabase): BotBuilder
@@ -59,6 +59,11 @@ public interface MockBotFactory : BotFactory {
         init {
             Mirai
             net.mamoe.mirai._MiraiInstance.set(MockMiraiImpl())
+        }
+
+        @JvmStatic
+        public fun initialize() {
+            // noop
         }
     }
 }

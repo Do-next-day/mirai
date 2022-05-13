@@ -63,7 +63,7 @@ public interface MockNormalMember : NormalMember, MockMember {
     }
 
     /**
-     * 广播该群员主动离开了群
+     * 广播该群员主动离开了群, 此方法同时会在 [group] 中移除此成员
      */
     @MockBotDSL
     public suspend fun broadcastMemberLeave() {
@@ -74,7 +74,7 @@ public interface MockNormalMember : NormalMember, MockMember {
     }
 
     /**
-     * 广播该群员将 [bot] 踢出了群聊, 并同时在 bot 的群聊列表里删除该群
+     * 广播该群员将 [bot] 踢出了群聊, 并同时在 [bot] 的群聊列表里删除该群
      */
     @MockBotDSL
     public suspend fun broadcastKickBot() {
@@ -85,7 +85,7 @@ public interface MockNormalMember : NormalMember, MockMember {
     }
 
     /**
-     * 广播 该群成员被 [actor] 踢出
+     * 广播 该群成员被 [actor] 踢出, 此方法同时会在 [group] 中移除此成员
      */
     @MockBotDSL
     public suspend fun broadcastKickedBy(actor: MockNormalMember) {
@@ -96,9 +96,9 @@ public interface MockNormalMember : NormalMember, MockMember {
     }
 
     /**
-     * 广播该群员 禁言了 [target]
+     * 广播该群员 禁言了 [target], 此方法没有权限校检
      *
-     * @param durationSeconds 0为取消禁言
+     * @param durationSeconds 0 为取消禁言
      */
     @MockBotDSL
     public suspend fun broadcastMute(target: MockNormalMember, durationSeconds: Int)

@@ -32,13 +32,15 @@ import net.mamoe.mirai.mock.contact.MockGroup
 import net.mamoe.mirai.mock.contact.MockOtherClient
 import net.mamoe.mirai.mock.contact.MockStranger
 import net.mamoe.mirai.mock.database.MessageDatabase
-import net.mamoe.mirai.mock.txfs.TmpFsServer
 import net.mamoe.mirai.mock.internal.components.MockEventDispatcherImpl
+import net.mamoe.mirai.mock.internal.contact.*
 import net.mamoe.mirai.mock.internal.contact.MockFriendImpl
 import net.mamoe.mirai.mock.internal.contact.MockGroupImpl
+import net.mamoe.mirai.mock.internal.contact.MockImage
 import net.mamoe.mirai.mock.internal.contact.MockStrangerImpl
 import net.mamoe.mirai.mock.internal.contact.mockImplUploadAudioAsOnline
-import net.mamoe.mirai.mock.internal.remotefile.FsServerImpl
+import net.mamoe.mirai.mock.internal.txfs.TmpResourceServerImpl
+import net.mamoe.mirai.mock.txfs.TmpResourceServer
 import net.mamoe.mirai.mock.userprofile.UserProfileService
 import net.mamoe.mirai.mock.utils.NameGenerator
 import net.mamoe.mirai.mock.utils.broadcastBlocking
@@ -54,7 +56,7 @@ internal class MockBotImpl(
     override val id: Long,
     nick: String,
     override val nameGenerator: NameGenerator,
-    override val tmpFsServer: TmpFsServer,
+    override val tmpResourceServer: TmpResourceServer,
     override val msgDatabase: MessageDatabase,
     override val userProfileService: UserProfileService,
 ) : MockBot, Bot, ContactOrBot {
@@ -88,13 +90,14 @@ internal class MockBotImpl(
     }
 
     init {
-        if (tmpFsServer is FsServerImpl) {
+        if (tmpResourceServer is TmpResourceServerImpl) {
             // Not using logger.subLogger caused by kotlin compile error
-            tmpFsServer.logger = subLog(this.logger, "TmpFsServer").takeUnless { it == this.logger } ?: kotlin.run {
-                MiraiLogger.Factory.create(TmpFsServer::class.java, "TFS $id")
-            }
+            tmpResourceServer.logger =
+                subLog(this.logger, "TmpFsServer").takeUnless { it == this.logger } ?: kotlin.run {
+                    MiraiLogger.Factory.create(TmpResourceServerImpl::class.java, "TFS $id")
+                }
         }
-        tmpFsServer.startup()
+        tmpResourceServer.startupServer()
         msgDatabase.connect()
     }
 
@@ -119,7 +122,7 @@ internal class MockBotImpl(
 
     @Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
     override fun close(cause: Throwable?) {
-        tmpFsServer.close()
+        tmpResourceServer.close()
         Bot._instances.remove(id, this)
         cancel(when (cause) {
             null -> CancellationException("Bot cancelled")
@@ -171,6 +174,13 @@ internal class MockBotImpl(
 
     override suspend fun uploadOnlineAudio(resource: ExternalResource): OnlineAudio {
         return resource.mockImplUploadAudioAsOnline(this)
+    }
+
+    override suspend fun uploadMockImage(resource: ExternalResource): MockImage {
+        val md5 = resource.md5
+        val format = resource.formatName
+
+        return MockImage(generateImageId(md5, format), bot.tmpResourceServer.uploadResourceAsImage(resource).toString())
     }
 
     override fun toString(): String {

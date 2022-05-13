@@ -41,10 +41,15 @@ public interface MockGroup : Group, MockContact, MockMsgSyncSupport {
     override var avatarUrl: String
     override val announcements: MockAnnouncements
     public val honorMembers: MutableMap<GroupHonorType, MockNormalMember>
+
     /**
      * 更改拥有群荣耀的群成员.
-     * 会自动广播[MemberHonorChangeEvent.Achieve]和[MemberHonorChangeEvent.Lose].
-     * 此外如果honorType是[GroupHonorType.TALKATIVE], 会额外广播[net.mamoe.mirai.event.events.GroupTalkativeChangeEvent].
+     *
+     * 会自动广播 [MemberHonorChangeEvent.Achieve] 和 [MemberHonorChangeEvent.Lose] 等相关事件.
+     *
+     * 此外如果 [honorType] 是 [GroupHonorType.TALKATIVE],
+     * 会额外广播[net.mamoe.mirai.event.events.GroupTalkativeChangeEvent].
+     *
      * 如果不需要广播事件, 可直接更改 [MockGroup.honorMembers]
      */
     @MockBotDSL
@@ -75,13 +80,23 @@ public interface MockGroup : Group, MockContact, MockMsgSyncSupport {
         return addMember(MockMemberInfoBuilder().uin(id).nick(nick).also { action.accept(it) }.build())
     }
 
-    // Will have event broadcast
+    /**
+     * 修改群主, 该操作会广播群转让的相关事件
+     */
     @MockBotDSL
     public suspend fun changeOwner(member: NormalMember)
 
+    /**
+     * 修改群主, 改操作不会广播任何事件
+     */
     @MockBotDSL
     public fun changeOwnerNoEventBroadcast(member: NormalMember)
 
+    /**
+     * 创建新的匿名群成员.
+     *
+     * @param id 该匿名群成员的 id, 可自定义, 建议使用 ASCII 纯文本
+     */
     @MockBotDSL
     public fun newAnonymous(nick: String, id: String): MockAnonymousMember
 
@@ -89,7 +104,7 @@ public interface MockGroup : Group, MockContact, MockMsgSyncSupport {
     override fun getOrFail(id: Long): MockNormalMember = super.getOrFail(id).cast()
 
     /**
-     * 主动广播有新成员加入的事件
+     * 主动广播有新成员申请加入的事件
      */
     @MockBotDSL
     public suspend fun broadcastNewMemberJoinRequestEvent(

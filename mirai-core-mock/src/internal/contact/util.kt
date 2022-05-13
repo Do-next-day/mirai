@@ -24,6 +24,8 @@ import net.mamoe.mirai.mock.contact.MockGroup
 import net.mamoe.mirai.mock.utils.mock
 import net.mamoe.mirai.mock.utils.randomImageContent
 import net.mamoe.mirai.utils.*
+import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
+import net.mamoe.mirai.utils.ExternalResource.Companion.uploadAsImage
 import java.util.*
 import kotlin.io.path.outputStream
 
@@ -64,7 +66,7 @@ internal suspend fun ExternalResource.mockUploadVoice(bot: MockBot) = kotlin.run
         fileName = md5.toUHexString() + ".amr",
         md5 = md5,
         fileSize = size,
-        _url = bot.tmpFsServer.uploadFileAndGetUrl(this)
+        _url = bot.tmpResourceServer.uploadResourceAndGetUrl(this)
     )
 }
 
@@ -85,7 +87,7 @@ internal suspend fun ExternalResource.mockImplUploadAudioAsOnline(bot: MockBot):
         fileMd5 = md5,
         fileSize = size,
         codec = AudioCodec.SILK,
-        url = bot.tmpFsServer.uploadFileAndGetUrl(this),
+        url = bot.tmpResourceServer.uploadResourceAndGetUrl(this),
         length = size,
         originalPtt = null,
     )
@@ -104,13 +106,7 @@ internal class MockImage(
         // create a mockImage with random content
         internal suspend fun random(bot: MockBot): MockImage {
             val text = randomImageContent()
-            val bindId = "image/" + generateUUID(text.md5())
-            val uuid = "${System.currentTimeMillis()}-${UUID.randomUUID()}"
-            bot.tmpFsServer.fsSystem.getPath(uuid).outputStream().use { fso ->
-                fso.write(text)
-            }
-            bot.tmpFsServer.bindFile(uuid, bindId)
-            return MockImage(generateImageId(text.md5()), bindId)
+            return bot.uploadMockImage(text.toExternalResource().toAutoCloseable()).cast()
         }
     }
 
@@ -119,7 +115,7 @@ internal class MockImage(
     override fun getUrl(bot: Bot): String {
         if (urlPath.startsWith("http"))
             return urlPath
-        return bot.mock().tmpFsServer.httpRoot.plusHttpSubpath(urlPath)
+        return bot.mock().tmpResourceServer.storageRoot.toString().plusHttpSubpath(urlPath)
     }
 
     override fun toString(): String = _stringValue!!

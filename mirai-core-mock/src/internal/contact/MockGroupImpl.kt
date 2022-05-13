@@ -48,7 +48,7 @@ internal class MockGroupImpl(
     parentCoroutineContext, bot, id
 ), MockGroup {
     override val honorMembers: MutableMap<GroupHonorType, MockNormalMember> = EnumMap(GroupHonorType::class.java)
-    private val txFileSystem by lazy { bot.mock().tmpFsServer.fsDisk.newFsSystem() }
+    private val txFileSystem by lazy { bot.mock().tmpResourceServer.txFileDisk.newFsSystem() }
 
     override var avatarUrl: String by lateinitMutableProperty { runBlocking { MockImage.random(bot).getUrl(bot) } }
 
@@ -320,10 +320,10 @@ internal class MockGroupImpl(
         return true
     }
 
+    @Deprecated("Please use files instead.", replaceWith = ReplaceWith("files.root"))
     @Suppress("OverridingDeprecatedMember", "DEPRECATION")
-    override val filesRoot: RemoteFile by lazy {
-        net.mamoe.mirai.mock.internal.remotefile.v1.MockRemoteFileRoot(this, txFileSystem)
-    }
+    override val filesRoot: RemoteFile // TODO
+        get() = error("LEGACY FILES REMOTE FILE TESTING IS DEPRECATED")
 
     override val files: RemoteFiles by lazy {
         net.mamoe.mirai.mock.internal.remotefile.absolutefile.MockRemoteFiles(this, txFileSystem)

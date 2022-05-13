@@ -30,7 +30,7 @@ import kotlin.test.assertNotEquals
 
 internal class AbsoluteFileTest : MockBotTestBase() {
     private val tmpfs: FileSystem = Jimfs.newFileSystem(Configuration.unix())
-    private val disk = bot.tmpFsServer.fsDisk
+    private val disk = bot.tmpResourceServer.txFileDisk
     private val group = bot.addGroup(11L, "a")
     private val fsys = TxFileSystemImpl(disk.cast())
     private val files = MockRemoteFiles(group, fsys)

@@ -7,14 +7,15 @@
  * https://github.com/mamoe/mirai/blob/dev/LICENSE
  */
 
+@file:Suppress("DEPRECATION", "DEPRECATION_ERROR")
+
 package net.mamoe.mirai.mock.test
 
 import kotlinx.coroutines.runBlocking
-import net.mamoe.mirai.mock.txfs.TmpFsServer
+import net.mamoe.mirai.mock.txfs.TmpResourceServer
 import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
 import net.mamoe.mirai.utils.mkParentDirs
 import org.junit.jupiter.api.Test
-import java.net.URL
 import kotlin.io.path.writeText
 import kotlin.test.assertEquals
 
@@ -22,20 +23,18 @@ import kotlin.test.assertEquals
 internal class FsServerTest {
     @Test
     fun testFsServer() = runBlocking<Unit> {
-
-        val fsServer = TmpFsServer.newInMemoryFsServer()
-        fsServer.startup()
+        val fsServer = TmpResourceServer.newInMemoryTmpResourceServer()
+        fsServer.startupServer()
         val testFile = "Test".toByteArray().toExternalResource()
-        val pt = fsServer.uploadFile(testFile)
-        println(fsServer.httpRoot + pt)
-        val response = URL(fsServer.httpRoot + pt).readText()
+        val resourceId = fsServer.uploadResource(testFile)
+        val response = fsServer.resolveHttpUrl(resourceId).toURL().readText()
         assertEquals("Test", response)
 
-        val pt0 = fsServer.fsSystem.getPath("/rand/etc/randrand/somedata")
+        val pt0 = fsServer.storageRoot.resolve("/rand/etc/randrand/somedata")
         pt0.mkParentDirs()
         pt0.writeText("Test")
 
-        assertEquals("Test", URL(fsServer.resolveHttpUrl(pt0)).readText())
+        assertEquals("Test", fsServer.resolveHttpUrlByPath(pt0).toURL().readText())
 
         fsServer.close()
     }

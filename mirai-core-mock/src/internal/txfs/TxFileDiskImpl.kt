@@ -11,7 +11,6 @@
 
 package net.mamoe.mirai.mock.internal.txfs
 
-import net.mamoe.mirai.mock.internal.remotefile.length
 import net.mamoe.mirai.mock.txfs.TxFileDisk
 import net.mamoe.mirai.mock.txfs.TxFileSystem
 import net.mamoe.mirai.mock.txfs.TxRemoteFile
@@ -214,7 +213,7 @@ internal class TxFileImpl(
     override val size: Long
         get() {
             val pt = toPath
-            if (pt.isFile) return pt.length()
+            if (pt.isFile) return pt.fileSize()
             return 0
         }
 

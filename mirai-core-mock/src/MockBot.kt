@@ -18,10 +18,12 @@ import net.mamoe.mirai.event.broadcast
 import net.mamoe.mirai.event.events.BotAvatarChangedEvent
 import net.mamoe.mirai.event.events.BotOfflineEvent
 import net.mamoe.mirai.event.events.NewFriendRequestEvent
+import net.mamoe.mirai.message.data.Image
 import net.mamoe.mirai.message.data.OnlineAudio
 import net.mamoe.mirai.mock.contact.*
 import net.mamoe.mirai.mock.database.MessageDatabase
-import net.mamoe.mirai.mock.txfs.TmpFsServer
+import net.mamoe.mirai.mock.internal.contact.MockImage
+import net.mamoe.mirai.mock.txfs.TmpResourceServer
 import net.mamoe.mirai.mock.userprofile.UserProfileService
 import net.mamoe.mirai.mock.utils.NameGenerator
 import net.mamoe.mirai.utils.ExternalResource
@@ -86,7 +88,7 @@ public interface MockBot : Bot, MockContactOrBot, MockUserOrBot {
     /// All mock api will not broadcast event
 
     public val nameGenerator: NameGenerator
-    public val tmpFsServer: TmpFsServer
+    public val tmpResourceServer: TmpResourceServer
     public val msgDatabase: MessageDatabase
     public val userProfileService: UserProfileService
 
@@ -114,6 +116,9 @@ public interface MockBot : Bot, MockContactOrBot, MockUserOrBot {
 
     @MockBotDSL
     public suspend fun uploadOnlineAudio(resource: ExternalResource): OnlineAudio
+
+    @MockBotDSL
+    public suspend fun uploadMockImage(resource: ExternalResource): Image
 
     @MockBotDSL
     public suspend fun broadcastOfflineEvent() {
