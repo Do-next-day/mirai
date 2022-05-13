@@ -313,7 +313,7 @@ internal class MockGroupImpl(
     }
 
     @Suppress("OverridingDeprecatedMember", "DEPRECATION", "DEPRECATION_ERROR")
-    override suspend fun uploadVoice(resource: ExternalResource): Voice =
+    override suspend fun uploadVoice(resource: ExternalResource): net.mamoe.mirai.message.data.Voice =
         resource.mockUploadVoice(bot)
 
     override suspend fun setEssenceMessage(source: MessageSource): Boolean {

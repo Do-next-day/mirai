@@ -60,7 +60,7 @@ internal suspend fun ExternalResource.mockUploadVoice(bot: MockBot) = kotlin.run
     val md5 = this.md5
     val size = this.size
     @Suppress("DEPRECATION", "DEPRECATION_ERROR")
-    Voice(
+    net.mamoe.mirai.message.data.Voice(
         fileName = md5.toUHexString() + ".amr",
         md5 = md5,
         fileSize = size,

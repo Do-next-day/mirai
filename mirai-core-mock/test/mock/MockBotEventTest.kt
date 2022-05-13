@@ -50,7 +50,7 @@ internal class MockBotEventTest : MockBotTestBase() {
 
     @Test
     fun testMockAvatarChange() = runTest {
-        assertEquals("http://q1.qlogo.cn/g?b=qq&nk=${bot.id}&s=640", bot.avatarUrl)
+        assertEquals("http://q.qlogo.cn/g?b=qq&nk=${bot.id}&s=640", bot.avatarUrl)
         runAndReceiveEventBroadcast {
             bot.avatarUrl = "http://localhost/test.png"
             assertEquals("http://localhost/test.png", bot.avatarUrl)
