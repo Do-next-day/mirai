@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 Mamoe Technologies and contributors.
+ * Copyright 2019-2022 Mamoe Technologies and contributors.
  *
  * 此源代码的使用受 GNU AFFERO GENERAL PUBLIC LICENSE version 3 许可证的约束, 可以在以下链接找到该许可证.
  * Use of this source code is governed by the GNU AGPLv3 license that can be found through the following link.
@@ -245,7 +245,7 @@ internal class MockGroupImpl(
 
     override val announcements = MockAnnouncementsImpl(this)
 
-    @Suppress("OverridingDeprecatedMember")
+    @Suppress("OverridingDeprecatedMember", "OVERRIDE_DEPRECATION")
     override val settings: GroupSettings = object : GroupSettings {
         override var entranceAnnouncement: String
             get() = announcements.announcements.values.asSequence()
@@ -312,7 +312,7 @@ internal class MockGroupImpl(
         return super<AbstractMockContact>.sendMessage(message).cast()
     }
 
-    @Suppress("OverridingDeprecatedMember", "DEPRECATION", "DEPRECATION_ERROR")
+    @Suppress("OverridingDeprecatedMember", "DEPRECATION", "DEPRECATION_ERROR", "OVERRIDE_DEPRECATION")
     override suspend fun uploadVoice(resource: ExternalResource): net.mamoe.mirai.message.data.Voice =
         resource.mockUploadVoice(bot)
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 Mamoe Technologies and contributors.
+ * Copyright 2019-2022 Mamoe Technologies and contributors.
  *
  * 此源代码的使用受 GNU AFFERO GENERAL PUBLIC LICENSE version 3 许可证的约束, 可以在以下链接找到该许可证.
  * Use of this source code is governed by the GNU AGPLv3 license that can be found through the following link.
@@ -26,23 +26,23 @@ internal class MockRemoteFiles(
 internal class MRF_AbsoluteFolderRoot(files: MockRemoteFiles) : MockAbsoluteFolder(files) {
     override var contentsCount: Int
         get() = 0
-        set(value) {}
+        set(_) {}
 
     override suspend fun refreshed(): AbsoluteFolder = MRF_AbsoluteFolderRoot(files)
     override val parent: AbsoluteFolder? get() = null
     override val id: String get() = "/"
     override var name: String
         get() = "/"
-        set(value) {}
+        set(_) {}
     override var absolutePath: String
         get() = "/"
-        set(value) {}
+        set(_) {}
     override val isFile: Boolean get() = false
     override val isFolder: Boolean get() = true
     override val uploadTime: Long get() = 0
     override var lastModifiedTime: Long
         get() = 0
-        set(value) {}
+        set(_) {}
     override val uploaderId: Long get() = 0
     override suspend fun exists(): Boolean = true
     override suspend fun renameTo(newName: String): Boolean = false
