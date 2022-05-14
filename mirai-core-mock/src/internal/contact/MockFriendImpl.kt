@@ -13,6 +13,7 @@ package net.mamoe.mirai.mock.internal.contact
 
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
+import net.mamoe.mirai.contact.AvatarSpec
 import net.mamoe.mirai.contact.Friend
 import net.mamoe.mirai.contact.roaming.RoamingMessages
 import net.mamoe.mirai.event.broadcast
@@ -58,6 +59,10 @@ internal class MockFriendImpl(
             mockApi.avatarUrl = value
             FriendAvatarChangedEvent(this).broadcastBlocking()
         }
+
+    override fun avatarUrl(spec: AvatarSpec): String {
+        return avatarUrl
+    }
 
     override var nick: String
         get() = mockApi.nick

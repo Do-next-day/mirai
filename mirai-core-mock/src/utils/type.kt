@@ -90,6 +90,9 @@ public inline fun MockGroup.member(id: Long): MockNormalMember = getOrFail(id)
 public inline fun MockGroup.anonymous(name: String): MockAnonymousMember =
     newAnonymous(name, UUID.randomUUID().toString())
 
+/**
+ * @see MockBot.uploadOnlineAudio
+ */
 @MockBotDSL
 public suspend fun ExternalResource.mockUploadAsOnlineAudio(bot: MockBot): OnlineAudio {
     return bot.uploadOnlineAudio(this)

@@ -320,7 +320,7 @@ internal class MockMiraiImpl : MiraiImpl() {
 
     override fun createImage(imageId: String): Image {
         if (imageId matches Image.IMAGE_ID_REGEX) {
-            return MockImage(imageId, "image/" + imageId.substring(1..36))
+            return MockImage(imageId, "images/" + imageId.substring(1..36))
         }
         //imageId.substring(1..36)
         return super.createImage(imageId)
@@ -339,5 +339,8 @@ internal class MockMiraiImpl : MiraiImpl() {
             }
         }
         super.broadcastEvent(event)
+    }
+
+    override suspend fun refreshKeys(bot: Bot) {
     }
 }

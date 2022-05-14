@@ -50,7 +50,15 @@ internal class MockNormalMemberImpl(
     parentCoroutineContext, bot,
     id
 ), MockNormalMember {
-    override var avatarUrl: String by lateinitMutableProperty { runBlocking { MockImage.random(bot).getUrl(bot) } }
+    override var avatarUrl: String by lateinitMutableProperty {
+        bot.getFriend(id)?.let { return@lateinitMutableProperty it.avatarUrl }
+        runBlocking { MockImage.random(bot).getUrl(bot) }
+    }
+
+    override fun avatarUrl(spec: AvatarSpec): String {
+        return avatarUrl
+    }
+
     private inline fun <T> crossFriendAccess(
         ifExists: (MockFriend) -> T,
         ifNotExists: () -> T,

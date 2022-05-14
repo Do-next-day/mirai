@@ -99,6 +99,7 @@ public interface MockNormalMember : NormalMember, MockMember {
      * 广播该群员 禁言了 [target], 此方法没有权限校检
      *
      * @param durationSeconds 0 为取消禁言
+     * @param target 被禁言群成员
      */
     @MockBotDSL
     public suspend fun broadcastMute(target: MockNormalMember, durationSeconds: Int)

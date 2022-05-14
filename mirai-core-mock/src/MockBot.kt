@@ -35,6 +35,11 @@ import kotlin.contracts.contract
 import kotlin.internal.LowPriorityInOverloadResolution
 import kotlin.random.Random
 
+/**
+ * 一个虚拟的机器人对象. 继承于 [Bot]
+ *
+ * @see MockBotFactory 构造 [MockBot] 的工厂, [MockBot] 的唯一构造方式
+ */
 @Suppress("unused")
 @JvmBlockingBridge
 public interface MockBot : Bot, MockContactOrBot, MockUserOrBot {
@@ -114,17 +119,35 @@ public interface MockBot : Bot, MockContactOrBot, MockUserOrBot {
     @MockBotDSL
     public fun addStranger(id: Long, name: String): MockStranger
 
+    /**
+     * 将 [resource] 上传到 [临时资源服务器][tmpResourceServer],
+     * 并返回一个 [OnlineAudio] 对象, 可用于测试语音接收
+     *
+     * @see MockUser.says
+     */
     @MockBotDSL
     public suspend fun uploadOnlineAudio(resource: ExternalResource): OnlineAudio
 
+    /**
+     * 将 [resource] 上传到 [临时资源服务器][tmpResourceServer]
+     * 并返回一个 [Image] 对象, 可用于测试图片接收
+     *
+     * @see MockUser.says
+     */
     @MockBotDSL
     public suspend fun uploadMockImage(resource: ExternalResource): Image
 
+    /**
+     * 广播 [Bot] 掉线事件
+     */
     @MockBotDSL
     public suspend fun broadcastOfflineEvent() {
         BotOfflineEvent.Dropped(this, java.net.SocketException("socket closed")).broadcast()
     }
 
+    /**
+     * 广播 [Bot] 头像更新事件
+     */
     @MockBotDSL
     public suspend fun broadcastAvatarChangeEvent() {
         BotAvatarChangedEvent(this).broadcast()

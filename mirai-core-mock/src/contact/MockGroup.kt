@@ -40,6 +40,12 @@ public interface MockGroup : Group, MockContact, MockMsgSyncSupport {
     override val botAsMember: MockNormalMember
     override var avatarUrl: String
     override val announcements: MockAnnouncements
+
+    /**
+     * 群荣耀, 可直接修改此属性, 修改此属性不会广播相关事件
+     *
+     * @see changeHonorMember
+     */
     public val honorMembers: MutableMap<GroupHonorType, MockNormalMember>
 
     /**
@@ -48,7 +54,7 @@ public interface MockGroup : Group, MockContact, MockMsgSyncSupport {
      * 会自动广播 [MemberHonorChangeEvent.Achieve] 和 [MemberHonorChangeEvent.Lose] 等相关事件.
      *
      * 此外如果 [honorType] 是 [GroupHonorType.TALKATIVE],
-     * 会额外广播[net.mamoe.mirai.event.events.GroupTalkativeChangeEvent].
+     * 会额外广播 [net.mamoe.mirai.event.events.GroupTalkativeChangeEvent].
      *
      * 如果不需要广播事件, 可直接更改 [MockGroup.honorMembers]
      */
@@ -87,7 +93,7 @@ public interface MockGroup : Group, MockContact, MockMsgSyncSupport {
     public suspend fun changeOwner(member: NormalMember)
 
     /**
-     * 修改群主, 改操作不会广播任何事件
+     * 修改群主, 该操作不会广播任何事件
      */
     @MockBotDSL
     public fun changeOwnerNoEventBroadcast(member: NormalMember)

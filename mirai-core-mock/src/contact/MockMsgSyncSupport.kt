@@ -12,7 +12,7 @@ package net.mamoe.mirai.mock.contact
 import net.mamoe.mirai.message.data.MessageChain
 import net.mamoe.mirai.mock.MockBotDSL
 
-public interface MockMsgSyncSupport: MockContact {
+public interface MockMsgSyncSupport : MockContact {
     /**
      * 广播消息同步事件
      */

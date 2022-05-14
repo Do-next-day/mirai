@@ -15,6 +15,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import net.mamoe.mirai.Bot
 import net.mamoe.mirai.Mirai
+import net.mamoe.mirai.contact.AvatarSpec
 import net.mamoe.mirai.contact.ContactList
 import net.mamoe.mirai.contact.ContactOrBot
 import net.mamoe.mirai.contact.MemberPermission
@@ -34,11 +35,6 @@ import net.mamoe.mirai.mock.contact.MockStranger
 import net.mamoe.mirai.mock.database.MessageDatabase
 import net.mamoe.mirai.mock.internal.components.MockEventDispatcherImpl
 import net.mamoe.mirai.mock.internal.contact.*
-import net.mamoe.mirai.mock.internal.contact.MockFriendImpl
-import net.mamoe.mirai.mock.internal.contact.MockGroupImpl
-import net.mamoe.mirai.mock.internal.contact.MockImage
-import net.mamoe.mirai.mock.internal.contact.MockStrangerImpl
-import net.mamoe.mirai.mock.internal.contact.mockImplUploadAudioAsOnline
 import net.mamoe.mirai.mock.internal.txfs.TmpResourceServerImpl
 import net.mamoe.mirai.mock.txfs.TmpResourceServer
 import net.mamoe.mirai.mock.userprofile.UserProfileService
@@ -76,7 +72,7 @@ internal class MockBotImpl(
             val f = field
             if (f.isEmpty()) {
                 @Suppress("QUALIFIED_SUPERTYPE_EXTENDED_BY_OTHER_SUPERTYPE", "RemoveExplicitSuperQualifier")
-                return super<ContactOrBot>.avatarUrl
+                return super<ContactOrBot>.avatarUrl(spec = AvatarSpec.LARGEST)
             }
             return f
         }
@@ -84,6 +80,10 @@ internal class MockBotImpl(
             field = value
             BotAvatarChangedEvent(this).broadcastBlocking()
         }
+
+    override fun avatarUrl(spec: AvatarSpec): String {
+        return avatarUrl
+    }
 
     override val logger: MiraiLogger by lazy {
         configuration.botLoggerSupplier(this)

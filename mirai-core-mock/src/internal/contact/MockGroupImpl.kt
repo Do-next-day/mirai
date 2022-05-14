@@ -51,6 +51,9 @@ internal class MockGroupImpl(
     private val txFileSystem by lazy { bot.mock().tmpResourceServer.txFileDisk.newFsSystem() }
 
     override var avatarUrl: String by lateinitMutableProperty { runBlocking { MockImage.random(bot).getUrl(bot) } }
+    override fun avatarUrl(spec: AvatarSpec): String {
+        return avatarUrl
+    }
 
     override fun changeHonorMember(member: MockNormalMember, honorType: GroupHonorType) {
         val onm = honorMembers[honorType]

@@ -12,6 +12,7 @@ package net.mamoe.mirai.mock.userprofile
 import me.him188.kotlin.jvm.blocking.bridge.JvmBlockingBridge
 import net.mamoe.mirai.IMirai
 import net.mamoe.mirai.data.UserProfile
+import net.mamoe.mirai.mock.MockBot
 import net.mamoe.mirai.mock.userprofile.MockUserProfileBuilder.Companion.invoke
 import net.mamoe.mirai.utils.runBIO
 import java.util.concurrent.ConcurrentHashMap
@@ -22,6 +23,9 @@ import kotlin.contracts.contract
  * 用户资料服务, 用于 [IMirai.queryProfile] 查询用户资料
  *
  * implementation note: Java 请实现 [UserProfileServiceJ]
+ *
+ * @see MockBot.userProfileService
+ * @see MockUserProfileBuilder
  */
 @JvmBlockingBridge
 public interface UserProfileService {
@@ -91,7 +95,7 @@ public interface MockUserProfileBuilder {
 
     public companion object {
         @JvmStatic
-        @JvmName("builder")
+        @JvmName("newBuilder")
         public operator fun invoke(): MockUserProfileBuilder = MockUPBuilderImpl()
     }
 }

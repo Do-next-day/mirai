@@ -16,6 +16,12 @@ package net.mamoe.mirai.mock.contact
  */
 public interface MockGroupControlPane {
     public val group: MockGroup
+
+    /**
+     * 如果为 [MockGroup.controlPane] 获得的原始控制面板, 此属性为 [MockGroup.botAsMember]
+     *
+     * @see withActor
+     */
     public val currentActor: MockNormalMember
 
     public var isAllowMemberInvite: Boolean
