@@ -15,6 +15,7 @@ import net.mamoe.mirai.mock.txfs.TxFileDisk
 import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
+import java.nio.file.Files
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
 import kotlin.test.assertFalse
@@ -27,6 +28,13 @@ internal class TxFsDiskTest {
 
     @AfterEach
     fun release() {
+        println("===================[ FILE SYSTEM STRUCT DUMP ]========================")
+        Files.walk(tmpfs.getPath("/")).use { s ->
+            s.forEach { pt ->
+                println(pt)
+            }
+        }
+        println("===================[                         ]========================")
         tmpfs.close()
     }
 
@@ -99,6 +107,8 @@ internal class TxFsDiskTest {
 
 
             assertEquals(newFile, system.findByPath("/1/hello world.bin").firstOrNull())
+
+            println("TEST SUB DIR: $subdir")
 
             // TODO: Download content
         }

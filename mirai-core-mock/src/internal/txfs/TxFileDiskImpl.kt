@@ -16,6 +16,7 @@ import net.mamoe.mirai.mock.txfs.TxFileSystem
 import net.mamoe.mirai.mock.txfs.TxRemoteFile
 import net.mamoe.mirai.mock.txfs.TxRemoteFileInfo
 import net.mamoe.mirai.utils.*
+import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.FileTime
 import java.util.*
@@ -169,6 +170,18 @@ internal class TxFileSystemImpl(
 
     fun mkdir(id: String, name: String, creator: Long, toPath: Path): TxFileImpl {
         if (id != "/") error("Creating 2nd directories, TxFileSystem current not support")
+
+        // Find existing subdir
+        Files.newDirectoryStream(toPath).use { ptdirstream ->
+            val exists = ptdirstream.firstOrNull { subfile ->
+                if (storage.resolve(subfile).isFile) return@firstOrNull false
+                val nameFile = storage.resolve("details").resolve(subfile.fileName).resolve("name")
+                return@firstOrNull nameFile.readText() == name
+            }
+            if (exists != null) {
+                return TxFileImpl(this, "/" + exists.fileName)
+            }
+        }
 
         val path = allocateNewPath(storage)
         val fid = '/' + path.name

@@ -17,6 +17,8 @@ import net.mamoe.mirai.contact.file.AbsoluteFile
 import net.mamoe.mirai.contact.file.AbsoluteFolder
 import net.mamoe.mirai.internal.message.data.FileMessageImpl
 import net.mamoe.mirai.message.data.FileMessage
+import net.mamoe.mirai.mock.internal.remotefile.remotefile.MockRemoteFile
+import net.mamoe.mirai.mock.txfs.TxRemoteFile
 import net.mamoe.mirai.mock.utils.mock
 
 internal class MockAbsoluteFile(
@@ -59,11 +61,18 @@ internal class MockAbsoluteFile(
     override suspend fun refreshed(): AbsoluteFile? =
         parent!!.files().filter { it.id == id }.firstOrNull()
 
+
+    private fun canModify(resolved: TxRemoteFile): Boolean {
+        return MockRemoteFile.canModify(resolved, contact)
+    }
+
     override suspend fun exists(): Boolean = _exists
 
     override suspend fun renameTo(newName: String): Boolean {
         if (!exists()) return false
-        if (files.fileSystem.resolveById(id)!!.rename(newName)) {
+        val resolved = files.fileSystem.resolveById(id) ?: return false
+        if (!canModify(resolved)) return false
+        if (resolved.rename(newName)) {
             refresh()
             return true
         }
@@ -72,7 +81,9 @@ internal class MockAbsoluteFile(
 
     override suspend fun delete(): Boolean {
         if (!exists()) return false
-        if (files.fileSystem.resolveById(id)!!.delete()) {
+        val resolved = files.fileSystem.resolveById(id) ?: return false
+        if (!canModify(resolved)) return false
+        if (resolved.delete()) {
             _exists = false
             return true
         }

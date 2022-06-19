@@ -7,18 +7,24 @@
  * https://github.com/mamoe/mirai/blob/dev/LICENSE
  */
 @file: Suppress("invisible_member", "invisible_reference")
+
 package net.mamoe.mirai.mock.internal.remotefile.absolutefile
 
 import kotlinx.coroutines.flow.*
 import net.mamoe.mirai.contact.FileSupported
+import net.mamoe.mirai.contact.PermissionDeniedException
 import net.mamoe.mirai.contact.file.AbsoluteFile
 import net.mamoe.mirai.contact.file.AbsoluteFileFolder
 import net.mamoe.mirai.contact.file.AbsoluteFolder
+import net.mamoe.mirai.contact.isOperator
 import net.mamoe.mirai.internal.utils.FileSystem
+import net.mamoe.mirai.mock.contact.MockGroup
+import net.mamoe.mirai.mock.internal.remotefile.remotefile.MockRemoteFile
 import net.mamoe.mirai.mock.txfs.TxRemoteFile
 import net.mamoe.mirai.utils.ExternalResource
 import net.mamoe.mirai.utils.JavaFriendlyAPI
 import net.mamoe.mirai.utils.ProgressionCallback
+import net.mamoe.mirai.utils.safeCast
 import java.util.stream.Stream
 import kotlin.streams.asStream
 
@@ -103,6 +109,12 @@ internal open class MockAbsoluteFolder(
 
     override suspend fun createFolder(name: String): AbsoluteFolder {
         if (name.isBlank()) throw IllegalArgumentException("folder name cannot be blank.")
+
+        contact.safeCast<MockGroup>()?.let check@{ group ->
+            if (group.botPermission.isOperator()) return@check
+            throw IllegalStateException("Requires admin permission to create folder `$name`")
+        }
+
         FileSystem.checkLegitimacy(name)
         currentTxRF().mksubdir(name, 0L)
         return resolveFolder(name)!!
@@ -184,6 +196,12 @@ internal open class MockAbsoluteFolder(
     override suspend fun uploadNewFile(
         filepath: String, content: ExternalResource, callback: ProgressionCallback<AbsoluteFile, Long>?
     ): AbsoluteFile {
+        contact.safeCast<MockGroup>()?.let check@{ group ->
+            if (group.controlPane.isAllowMemberFileUploading) return@check
+            if (group.botPermission.isOperator()) return@check
+            throw PermissionDeniedException("Group $group not allowed members to uploading new files.")
+        }
+
         FileSystem.checkLegitimacy(filepath)
         val folderName = filepath.removePrefix("/").substringBeforeLast("/")
         val folder =
@@ -193,12 +211,19 @@ internal open class MockAbsoluteFolder(
         val f = files.fileSystem.resolveById(folder.id)!!
             .uploadFile(filepath.substringAfterLast("/"), content, 0L)
         return f.toMockAbsFile(files, content.md5, content.sha1)
+
     }
 
     override suspend fun exists(): Boolean = _exists
 
+    private fun canModify(resolved: TxRemoteFile): Boolean {
+        return MockRemoteFile.canModify(resolved, contact)
+    }
+
     override suspend fun renameTo(newName: String): Boolean {
-        if (files.fileSystem.resolveById(id)!!.rename(newName)) {
+        val resolved = files.fileSystem.resolveById(id) ?: return false
+        if (!canModify(resolved)) return false
+        if (resolved.rename(newName)) {
             refresh()
             return true
         }
@@ -207,7 +232,9 @@ internal open class MockAbsoluteFolder(
 
     override suspend fun delete(): Boolean {
         if (!_exists) return false
-        if (files.fileSystem.resolveById(id)!!.delete()) {
+        val resolved = files.fileSystem.resolveById(id) ?: return false
+        if (!canModify(resolved)) return false
+        if (resolved.delete()) {
             _exists = false
             return true
         }

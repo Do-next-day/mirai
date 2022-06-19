@@ -27,6 +27,11 @@ public interface TxRemoteFile {
     public fun listFiles(): Sequence<TxRemoteFile>?
     public fun delete(): Boolean
     public fun rename(name: String): Boolean
+
+    /**
+     * 移动文件
+     * @param path 目标目录
+     */
     public fun moveTo(path: TxRemoteFile)
 
     public fun asExternalResource(): ExternalResource

@@ -151,7 +151,6 @@ internal class MockGroupTest : MockBotTestBase() {
 
     @Suppress("DEPRECATION")
     @Test
-    @Disabled
     internal fun testGroupFileV1() = runTest {
         val fsroot = bot.addGroup(5417, "58aw").filesRoot
         fsroot.resolve("helloworld.txt").uploadAndSend(
