@@ -15,12 +15,8 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import net.mamoe.mirai.event.Event
-import net.mamoe.mirai.event.events.MessageEvent
-import net.mamoe.mirai.internal.contact.logMessageReceived
 import net.mamoe.mirai.internal.network.components.EventDispatcherImpl
-import net.mamoe.mirai.internal.network.components.EventDispatcherScopeFlag
 import net.mamoe.mirai.utils.MiraiLogger
-import net.mamoe.mirai.utils.TestOnly
 import net.mamoe.mirai.utils.runUnwrapCancellationException
 import kotlin.coroutines.CoroutineContext
 
@@ -36,20 +32,23 @@ internal open class MockEventDispatcherImpl(
     logger: MiraiLogger,
 ) : EventDispatcherImpl(lifecycleContext, logger) {
     override suspend fun broadcast(event: Event) {
-        if (event is MessageEvent) {
-            event.logMessageReceived()
-        }
         runUnwrapCancellationException {
-            launch(
-                EventDispatcherScopeFlag,
-                start = CoroutineStart.UNDISPATCHED
-            ) {
+            if (isActive) {
+                // This requires the scope to be active, while the original one doesn't.
+
+                // so that [joinBroadcast] works.
+                launch(
+                    start = CoroutineStart.UNDISPATCHED
+                ) {
+                    super.broadcast(event)
+                }.join()
+            } else {
+                // Scope closed, typically when broadcasting `BotOfflineEvent` by StateObserver from `bot.close`
                 super.broadcast(event)
-            }.join()
-        } // so that [joinBroadcast] works.
+            }
+        }
     }
 
-    @OptIn(TestOnly::class)
     override suspend fun joinBroadcast() {
         for (child in coroutineContext.job.children) {
             child.join()

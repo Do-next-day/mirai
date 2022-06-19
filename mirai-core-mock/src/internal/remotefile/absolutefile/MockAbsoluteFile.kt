@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import net.mamoe.mirai.contact.FileSupported
 import net.mamoe.mirai.contact.file.AbsoluteFile
 import net.mamoe.mirai.contact.file.AbsoluteFolder
-import net.mamoe.mirai.internal.message.FileMessageImpl
+import net.mamoe.mirai.internal.message.data.FileMessageImpl
 import net.mamoe.mirai.message.data.FileMessage
 import net.mamoe.mirai.mock.utils.mock
 

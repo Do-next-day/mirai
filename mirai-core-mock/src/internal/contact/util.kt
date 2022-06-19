@@ -16,8 +16,8 @@ import net.mamoe.mirai.contact.Group
 import net.mamoe.mirai.contact.Member
 import net.mamoe.mirai.contact.PermissionDeniedException
 import net.mamoe.mirai.internal.contact.uin
-import net.mamoe.mirai.internal.message.DeferredOriginUrlAware
-import net.mamoe.mirai.internal.message.OnlineAudioImpl
+import net.mamoe.mirai.internal.message.image.DeferredOriginUrlAware
+import net.mamoe.mirai.internal.message.data.OnlineAudioImpl
 import net.mamoe.mirai.message.data.*
 import net.mamoe.mirai.mock.MockBot
 import net.mamoe.mirai.mock.contact.MockGroup
@@ -25,9 +25,7 @@ import net.mamoe.mirai.mock.utils.mock
 import net.mamoe.mirai.mock.utils.randomImageContent
 import net.mamoe.mirai.utils.*
 import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
-import net.mamoe.mirai.utils.ExternalResource.Companion.uploadAsImage
 import java.util.*
-import kotlin.io.path.outputStream
 
 internal fun Member.requireBotPermissionHigherThanThis(msg: String) {
     if (this.permission < this.group.botPermission) return

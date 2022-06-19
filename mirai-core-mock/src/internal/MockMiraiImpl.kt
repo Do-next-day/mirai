@@ -23,8 +23,8 @@ import net.mamoe.mirai.event.broadcast
 import net.mamoe.mirai.event.events.*
 import net.mamoe.mirai.internal.AbstractBot
 import net.mamoe.mirai.internal.MiraiImpl
+import net.mamoe.mirai.internal.event.EventChannelToEventDispatcherAdapter
 import net.mamoe.mirai.internal.network.components.EventDispatcher
-import net.mamoe.mirai.internal.network.components.EventDispatcherScopeFlag
 import net.mamoe.mirai.message.action.Nudge
 import net.mamoe.mirai.message.data.*
 import net.mamoe.mirai.mock.MockBotFactory
@@ -327,10 +327,6 @@ internal class MockMiraiImpl : MiraiImpl() {
     }
 
     override suspend fun broadcastEvent(event: Event) {
-        if (currentCoroutineContext()[EventDispatcherScopeFlag] as Any? != null) {
-            // called by [EventDispatcher]
-            return super.broadcastEvent(event)
-        }
         if (event is BotEvent) {
             val bot = event.bot
             if (bot is MockBotImpl) {

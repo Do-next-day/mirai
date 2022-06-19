@@ -14,8 +14,8 @@ package net.mamoe.mirai.mock.internal.contact
 import net.mamoe.mirai.contact.Contact
 import net.mamoe.mirai.event.events.MessagePreSendEvent
 import net.mamoe.mirai.internal.contact.broadcastMessagePreSendEvent
-import net.mamoe.mirai.internal.contact.logMessageSent
-import net.mamoe.mirai.internal.message.createMessageReceipt
+import net.mamoe.mirai.internal.contact.replaceMagicCodes
+import net.mamoe.mirai.internal.contact.sendMessageImpl
 import net.mamoe.mirai.message.MessageReceipt
 import net.mamoe.mirai.message.data.Image
 import net.mamoe.mirai.message.data.Message
@@ -48,9 +48,11 @@ internal abstract class AbstractMockContact(
         val source = newMessageSource(msg)
         val response = source withMessage msg
 
-        logMessageSent(msg)
+        bot.logger.verbose("$this <- $msg".replaceMagicCodes())
 
-        return source.createMessageReceipt(this, false).also {
+
+        @Suppress("DEPRECATION_ERROR")
+        return MessageReceipt(source, this).also {
             postMessagePreSend(response, it)
         }
     }

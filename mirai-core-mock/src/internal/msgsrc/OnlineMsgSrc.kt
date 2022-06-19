@@ -25,7 +25,9 @@ internal class OnlineMsgSrcToGroup(
     override val bot: Bot,
     override val sender: Bot,
     override val target: Group
-) : OnlineMessageSource.Outgoing.ToGroup()
+) : OnlineMessageSource.Outgoing.ToGroup() {
+    override val isOriginalMessageInitialized: Boolean get() = true
+}
 
 internal class OnlineMsgSrcToFriend(
     override val ids: IntArray,
@@ -35,7 +37,9 @@ internal class OnlineMsgSrcToFriend(
     override val bot: Bot,
     override val sender: Bot,
     override val target: Friend
-) : OnlineMessageSource.Outgoing.ToFriend()
+) : OnlineMessageSource.Outgoing.ToFriend() {
+    override val isOriginalMessageInitialized: Boolean get() = true
+}
 
 internal class OnlineMsgSrcToStranger(
     override val ids: IntArray,
@@ -45,7 +49,9 @@ internal class OnlineMsgSrcToStranger(
     override val bot: Bot,
     override val sender: Bot,
     override val target: Stranger
-) : OnlineMessageSource.Outgoing.ToStranger()
+) : OnlineMessageSource.Outgoing.ToStranger() {
+    override val isOriginalMessageInitialized: Boolean get() = true
+}
 
 internal class OnlineMsgSrcToTemp(
     override val ids: IntArray,
@@ -55,7 +61,9 @@ internal class OnlineMsgSrcToTemp(
     override val bot: Bot,
     override val sender: Bot,
     override val target: Member
-) : OnlineMessageSource.Outgoing.ToTemp()
+) : OnlineMessageSource.Outgoing.ToTemp() {
+    override val isOriginalMessageInitialized: Boolean get() = true
+}
 
 internal class OnlineMsgFromGroup(
     override val ids: IntArray,
@@ -64,7 +72,9 @@ internal class OnlineMsgFromGroup(
     override val originalMessage: MessageChain,
     override val bot: Bot,
     override val sender: Member
-) : OnlineMessageSource.Incoming.FromGroup()
+) : OnlineMessageSource.Incoming.FromGroup() {
+    override val isOriginalMessageInitialized: Boolean get() = true
+}
 
 internal class OnlineMsgSrcFromFriend(
     override val ids: IntArray,
@@ -73,7 +83,9 @@ internal class OnlineMsgSrcFromFriend(
     override val originalMessage: MessageChain,
     override val bot: Bot,
     override val sender: Friend
-) : OnlineMessageSource.Incoming.FromFriend()
+) : OnlineMessageSource.Incoming.FromFriend() {
+    override val isOriginalMessageInitialized: Boolean get() = true
+}
 
 internal class OnlineMsgSrcFromStranger(
     override val ids: IntArray,
@@ -82,7 +94,9 @@ internal class OnlineMsgSrcFromStranger(
     override val originalMessage: MessageChain,
     override val bot: Bot,
     override val sender: Stranger
-) : OnlineMessageSource.Incoming.FromStranger()
+) : OnlineMessageSource.Incoming.FromStranger() {
+    override val isOriginalMessageInitialized: Boolean get() = true
+}
 
 internal class OnlineMsgSrcFromTemp(
     override val ids: IntArray,
@@ -91,7 +105,9 @@ internal class OnlineMsgSrcFromTemp(
     override val originalMessage: MessageChain,
     override val bot: Bot,
     override val sender: Member
-) : OnlineMessageSource.Incoming.FromTemp()
+) : OnlineMessageSource.Incoming.FromTemp() {
+    override val isOriginalMessageInitialized: Boolean get() = true
+}
 
 internal class OnlineMsgSrcFromGroup(
     override val ids: IntArray,
@@ -100,7 +116,9 @@ internal class OnlineMsgSrcFromGroup(
     override val originalMessage: MessageChain,
     override val bot: Bot,
     override val sender: Member
-) : OnlineMessageSource.Incoming.FromGroup()
+) : OnlineMessageSource.Incoming.FromGroup() {
+    override val isOriginalMessageInitialized: Boolean get() = true
+}
 
 internal typealias MsgSrcConstructor<R> = (
     ids: IntArray,
